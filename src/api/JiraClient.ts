@@ -186,6 +186,39 @@ export class JiraClient {
       throw error;
     }
   }
+
+  /**
+   * Fetch full details of a specific issue
+   *
+   * @param issueKey - The Jira issue key (e.g., 'PROJ-123')
+   * @returns Promise with detailed JiraIssueDetails object
+   * @throws JiraNotFoundError if the issue doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getIssueDetails(issueKey: string): Promise<JiraIssueDetails> {
+    const params = {
+      fields: '*all',
+      expand: 'renderedFields,names,schema,transitions,changelog,comments'
+    };
+
+    try {
+      const response = await this.request<JiraIssueDetails>(
+        'GET',
+        `/issue/${issueKey}`,
+        params
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Issue '${issueKey}' not found. Please verify the issue key.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while fetching issue details. Please verify your credentials.');
+        }
+      }
+      throw error;
+    }
+  }
 }
 
 /**
