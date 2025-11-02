@@ -6,7 +6,7 @@
 
 - [x] Feature 1.1: Project Scaffolding
 - [x] Feature 1.2: Build System Configuration
-- [ ] Feature 1.3: Extension Activation
+- [x] Feature 1.3: Extension Activation
 - [ ] Feature 1.4: Development Tools Setup
 - [ ] Feature 1.5: Test Infrastructure
 
