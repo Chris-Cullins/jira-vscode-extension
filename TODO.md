@@ -11,7 +11,7 @@
 
 ## Epic 2: Jira API Integration & Authentication
 
-- [ ] Feature 2.1: API Client Architecture
+- [x] Feature 2.1: API Client Architecture
 - [ ] Feature 2.2: Authentication Flow
 - [ ] Feature 2.3: Fetch Assigned Issues
 - [ ] Feature 2.4: Fetch Issue Details
@@ -96,15 +96,6 @@
 - [ ] Feature 10.3: User-friendly error messages
 - [ ] Feature 10.4: Retry logic implementation
 - [ ] Feature 10.5: Status bar connection indicator
-
-## Epic 11: Testing
-
-- [ ] Feature 11.1: Unit test suites for each module
-- [ ] Feature 11.2: Integration test scenarios
-- [ ] Feature 11.3: Mock API setup
-- [ ] Feature 11.4: Performance test suite
-- [ ] Feature 11.5: Security audit checklist
-- [ ] Feature 11.6: Cross-platform testing
 
 ## Epic 12: Documentation
 
