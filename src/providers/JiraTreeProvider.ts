@@ -42,9 +42,9 @@ export class IssueItem extends vscode.TreeItem {
 
 		// Make the item clickable - open the issue in Jira
 		this.command = {
-			command: 'jira.openInBrowser',
-			title: 'Open in Jira',
-			arguments: [this.issue]
+			command: 'jira.openIssue',
+			title: 'Open Issue',
+			arguments: [this.issue.key]
 		};
 	}
 
@@ -77,52 +77,38 @@ export class IssueItem extends vscode.TreeItem {
 	 * Build the description text shown next to the issue key
 	 */
 	private buildDescription(): string {
-		const parts: string[] = [];
-
-		// Add issue type icon/abbreviation
-		const typeAbbr = this.getIssueTypeAbbreviation(this.issue.fields.issuetype.name);
-		if (typeAbbr) {
-			parts.push(typeAbbr);
-		}
-
-		// Add priority
-		parts.push(this.issue.fields.priority.name);
-
-		return parts.join(' • ');
+		const priority = this.getPriorityEmoji(this.issue.fields.priority.name);
+		return `${priority} ${this.issue.fields.issuetype.name}`;
 	}
 
 	/**
-	 * Get abbreviation for issue type
+	 * Get emoji for priority level
 	 */
-	private getIssueTypeAbbreviation(typeName: string): string {
-		const map: Record<string, string> = {
-			'Bug': '🐛',
-			'Story': '📖',
-			'Task': '✓',
-			'Epic': '🎯',
-			'Sub-task': '↳',
-			'Subtask': '↳'
+	private getPriorityEmoji(priority: string): string {
+		const emojiMap: Record<string, string> = {
+			'Highest': '🔴',
+			'High': '🟠',
+			'Medium': '🟡',
+			'Low': '🟢',
+			'Lowest': '⚪'
 		};
-		return map[typeName] || '';
+		return emojiMap[priority] || '⚪';
 	}
 
 	/**
 	 * Get VS Code theme icon for issue type
 	 */
 	private getIconForIssueType(): vscode.ThemeIcon {
-		const typeName = this.issue.fields.issuetype.name.toLowerCase();
-
-		if (typeName.includes('bug')) {
-			return new vscode.ThemeIcon('bug');
-		} else if (typeName.includes('story')) {
-			return new vscode.ThemeIcon('book');
-		} else if (typeName.includes('task') || typeName.includes('sub-task') || typeName.includes('subtask')) {
-			return new vscode.ThemeIcon('checklist');
-		} else if (typeName.includes('epic')) {
-			return new vscode.ThemeIcon('target');
-		}
-
-		return new vscode.ThemeIcon('circle-outline');
+		const iconMap: Record<string, string> = {
+			'Bug': 'bug',
+			'Story': 'book',
+			'Task': 'checklist',
+			'Epic': 'milestone',
+			'Subtask': 'list-tree',
+			'Sub-task': 'list-tree'
+		};
+		const iconName = iconMap[this.issue.fields.issuetype.name] || 'circle-outline';
+		return new vscode.ThemeIcon(iconName);
 	}
 }
 
