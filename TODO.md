@@ -24,7 +24,7 @@
 
 ## Epic 3: Configuration Management
 
-- [ ] Feature 3.1: Configuration Schema Definition
+- [x] Feature 3.1: Configuration Schema Definition
 - [ ] Feature 3.2: Configuration Access Layer
 - [ ] Feature 3.3: Initial Setup Wizard
 - [ ] Feature 3.4: Configuration Validation

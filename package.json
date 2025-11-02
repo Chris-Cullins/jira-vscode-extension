@@ -38,7 +38,50 @@
         "command": "jira.cacheStats",
         "title": "Jira: View Cache Statistics"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Jira Extension",
+      "properties": {
+        "jiraExtension.instanceUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Your Jira instance URL (e.g., https://company.atlassian.net)"
+        },
+        "jiraExtension.projectKey": {
+          "type": "string",
+          "default": "",
+          "description": "Default project key for ticket creation"
+        },
+        "jiraExtension.featureEpics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of feature epic IDs for bug creation"
+        },
+        "jiraExtension.autoRefreshInterval": {
+          "type": "number",
+          "default": 300,
+          "description": "Auto-refresh interval in seconds (0 to disable)"
+        },
+        "jiraExtension.contextFileLocation": {
+          "type": "string",
+          "default": ".jira",
+          "description": "Directory for Copilot context files"
+        },
+        "jiraExtension.enableCopilotTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Copilot tools integration"
+        },
+        "jiraExtension.maxIssues": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of issues to fetch"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
