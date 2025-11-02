@@ -430,6 +430,87 @@ export class JiraClient {
   }
 
   /**
+   * Fetch all accessible projects for the current user
+   *
+   * @returns Promise with array of JiraProject objects
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getProjects(): Promise<JiraProject[]> {
+    try {
+      const response = await this.request<JiraProject[]>('GET', '/project');
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError && error.statusCode === 401) {
+        throw new JiraAuthenticationError('Authentication failed while fetching projects. Please verify your credentials.');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch issue types for a specific project
+   *
+   * @param projectKey - The project key (e.g., 'PROJ')
+   * @returns Promise with array of JiraIssueType objects
+   * @throws JiraNotFoundError if the project doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getIssueTypes(projectKey: string): Promise<JiraIssueType[]> {
+    try {
+      const response = await this.request<{ issueTypes: JiraIssueType[] }>(
+        'GET',
+        `/project/${projectKey}`
+      );
+      return response.issueTypes;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Project '${projectKey}' not found. Please verify the project key.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while fetching issue types. Please verify your credentials.');
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch create metadata for dynamic form building
+   *
+   * This endpoint returns detailed information about what fields are available,
+   * required, and their allowed values when creating issues.
+   *
+   * @param projectKey - The project key (e.g., 'PROJ')
+   * @param issueType - The issue type name (e.g., 'Bug', 'Story')
+   * @returns Promise with JiraCreateMetadata object
+   * @throws JiraNotFoundError if the project or issue type doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getCreateMetadata(projectKey: string, issueType: string): Promise<JiraCreateMetadata> {
+    try {
+      const response = await this.request<JiraCreateMetadata>(
+        'GET',
+        '/issue/createmeta',
+        {
+          projectKeys: projectKey,
+          issuetypeNames: issueType,
+          expand: 'projects.issuetypes.fields'
+        }
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Project '${projectKey}' or issue type '${issueType}' not found. Please verify the values.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while fetching create metadata. Please verify your credentials.');
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Convert plain text to Atlassian Document Format (ADF)
    *
    * @param text - Plain text to convert
