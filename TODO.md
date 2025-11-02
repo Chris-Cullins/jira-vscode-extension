@@ -21,7 +21,6 @@
 - [x] Feature 2.8: Fetch Projects and Issue Types
 - [x] Feature 2.9: Error Handling
 - [x] Feature 2.10: Response Caching
-- [ ] Feature 2.11: API Client Unit Tests
 
 ## Epic 3: Configuration Management
 
