@@ -144,6 +144,36 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	// Register "Create Story" command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jira.createStory', async () => {
+			const provider = await getOrCreateWebviewProvider();
+			if (provider) {
+				await provider.show('story', 'Story');
+			}
+		})
+	);
+
+	// Register "Create Task" command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jira.createTask', async () => {
+			const provider = await getOrCreateWebviewProvider();
+			if (provider) {
+				await provider.show('task', 'Task');
+			}
+		})
+	);
+
+	// Register "Create Subtask" command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jira.createSubtask', async () => {
+			const provider = await getOrCreateWebviewProvider();
+			if (provider) {
+				await provider.show('subtask', 'Sub-task');
+			}
+		})
+	);
+
 	// Register configuration change handler and set callbacks
 	configChangeHandler.setTreeViewRefreshCallback(() => treeProvider.refresh());
 	configChangeHandler.setAutoRefreshUpdateCallback(() => treeProvider.updateRefreshInterval());

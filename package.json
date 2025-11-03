@@ -103,6 +103,21 @@
         "command": "jira.createInternalDefect",
         "title": "Jira: Create Internal Defect",
         "icon": "$(bug)"
+      },
+      {
+        "command": "jira.createStory",
+        "title": "Jira: Create Story",
+        "icon": "$(book)"
+      },
+      {
+        "command": "jira.createTask",
+        "title": "Jira: Create Task",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "jira.createSubtask",
+        "title": "Jira: Create Subtask",
+        "icon": "$(list-tree)"
       }
     ],
     "configuration": {
