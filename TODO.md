@@ -63,7 +63,7 @@
 - [x] Feature 6.6: Field Validation
 - [x] Feature 6.7: Form Submission Logic
 - [x] Feature 6.8: Command Registration
-- [ ] Feature 6.9: Sidebar Create Button
+- [x] Feature 6.9: Sidebar Create Button
 
 ## Epic 7: Investigate with Copilot
 

@@ -113,6 +113,11 @@
         "command": "jira.createTask",
         "title": "Jira: Create Task",
         "icon": "$(checklist)"
+      },
+      {
+        "command": "jira.showCreateMenu",
+        "title": "Create Issue",
+        "icon": "$(add)"
       }
     ],
     "configuration": {
@@ -184,9 +189,14 @@
     "menus": {
       "view/title": [
         {
+          "command": "jira.showCreateMenu",
+          "when": "view == jiraMyWork",
+          "group": "navigation@0"
+        },
+        {
           "command": "jira.refresh",
           "when": "view == jiraMyWork",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "jira.filterByIssueType",

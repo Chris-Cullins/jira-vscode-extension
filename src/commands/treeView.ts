@@ -435,3 +435,59 @@ export function registerAddCommentCommand(
 		}
 	});
 }
+
+/**
+ * Register the show create menu command
+ *
+ * Shows a quick pick menu for creating different types of Jira issues.
+ * Users can select from Bug Against Feature, Internal Defect, Story, or Task.
+ *
+ * @param context - VS Code extension context
+ * @returns Disposable for the command
+ */
+export function registerShowCreateMenuCommand(
+	context: vscode.ExtensionContext
+): vscode.Disposable {
+	return vscode.commands.registerCommand('jira.showCreateMenu', async () => {
+		try {
+			// Create quick pick items for different issue types
+			const issueTypes = [
+				{
+					label: '$(bug) Bug Against Feature',
+					description: 'Create a bug linked to a feature epic',
+					command: 'jira.createBug'
+				},
+				{
+					label: '$(bug) Internal Defect',
+					description: 'Create an internal defect',
+					command: 'jira.createDefect'
+				},
+				{
+					label: '$(book) Story',
+					description: 'Create a user story',
+					command: 'jira.createStory'
+				},
+				{
+					label: '$(checklist) Task',
+					description: 'Create a task',
+					command: 'jira.createTask'
+				}
+			];
+
+			// Show quick pick
+			const selected = await vscode.window.showQuickPick(issueTypes, {
+				placeHolder: 'Select issue type to create',
+				title: 'Create Jira Issue'
+			});
+
+			// If user selected an option, execute the corresponding command
+			if (selected) {
+				await vscode.commands.executeCommand(selected.command);
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(
+				`Failed to show create menu: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
+	});
+}

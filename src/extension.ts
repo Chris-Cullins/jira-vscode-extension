@@ -10,7 +10,7 @@ import { registerAuthenticateCommand, registerClearCredentialsCommand } from './
 import { registerCacheClearCommand, registerCacheStatsCommand } from './commands/cache';
 import { registerConfigureCommand } from './commands/configure';
 import { registerValidateCommand } from './commands/validate';
-import { registerRefreshCommand, registerOpenIssueCommand, registerCopyIssueKeyCommand, registerFilterByIssueTypeCommand, registerFilterByPriorityCommand, registerFilterBySprintCommand, registerClearFiltersCommand, registerSearchIssuesCommand, registerClearSearchCommand, registerChangeStatusCommand, registerAddCommentCommand } from './commands/treeView';
+import { registerRefreshCommand, registerOpenIssueCommand, registerCopyIssueKeyCommand, registerFilterByIssueTypeCommand, registerFilterByPriorityCommand, registerFilterBySprintCommand, registerClearFiltersCommand, registerSearchIssuesCommand, registerClearSearchCommand, registerChangeStatusCommand, registerAddCommentCommand, registerShowCreateMenuCommand } from './commands/treeView';
 import { JiraClient } from './api/JiraClient';
 
 /**
@@ -95,6 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(registerClearSearchCommand(context, treeProvider));
 	context.subscriptions.push(registerChangeStatusCommand(context, authManager, cacheManager, treeProvider));
 	context.subscriptions.push(registerAddCommentCommand(context, authManager, cacheManager));
+	context.subscriptions.push(registerShowCreateMenuCommand(context));
 
 	// Register ticket creation commands
 	// Create webview provider (will be initialized on demand with JiraClient)
