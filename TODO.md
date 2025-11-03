@@ -74,7 +74,7 @@
 - [x] Feature 7.5: Copilot Context Integration
 - [x] Feature 7.6: User Notifications
 - [x] Feature 7.7: Caching Investigation Results
-- [ ] Feature 7.8: Command Palette Command
+- [x] Feature 7.8: Command Palette Command
 
 ## Epic 8 & 9: Copilot Tools Integration
 

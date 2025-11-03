@@ -12,7 +12,7 @@ import { registerCacheClearCommand, registerCacheStatsCommand } from './commands
 import { registerConfigureCommand } from './commands/configure';
 import { registerValidateCommand } from './commands/validate';
 import { registerRefreshCommand, registerOpenIssueCommand, registerCopyIssueKeyCommand, registerFilterByIssueTypeCommand, registerFilterByPriorityCommand, registerFilterBySprintCommand, registerClearFiltersCommand, registerSearchIssuesCommand, registerClearSearchCommand, registerChangeStatusCommand, registerAddCommentCommand, registerShowCreateMenuCommand } from './commands/treeView';
-import { registerInvestigateWithCopilotCommand } from './commands/copilot';
+import { registerInvestigateWithCopilotCommand, registerInvestigateTicketCommand } from './commands/copilot';
 import { JiraClient } from './api/JiraClient';
 import { DummyJiraClient } from './api/DummyJiraClient';
 
@@ -102,6 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register Copilot integration commands
 	context.subscriptions.push(registerInvestigateWithCopilotCommand(context, authManager, configManager, cacheManager));
+	context.subscriptions.push(registerInvestigateTicketCommand(context, authManager, configManager, cacheManager));
 
 	// Register toggle dummy data command
 	context.subscriptions.push(

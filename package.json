@@ -125,6 +125,11 @@
         "icon": "$(copilot)"
       },
       {
+        "command": "jira.investigateTicket",
+        "title": "Jira: Investigate Ticket with Copilot",
+        "icon": "$(copilot)"
+      },
+      {
         "command": "jira.toggleDummyData",
         "title": "Jira: Toggle Dummy Data Mode"
       }
