@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(registerShowCreateMenuCommand(context));
 
 	// Register Copilot integration commands
-	context.subscriptions.push(registerInvestigateWithCopilotCommand(context));
+	context.subscriptions.push(registerInvestigateWithCopilotCommand(context, authManager, configManager, cacheManager));
 
 	// Register toggle dummy data command
 	context.subscriptions.push(

@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
 import { IssueItem } from '../providers/JiraTreeProvider';
+import { JiraClient } from '../api/JiraClient';
+import { DummyJiraClient } from '../api/DummyJiraClient';
+import { AuthManager } from '../api/AuthManager';
+import { CacheManager } from '../api/CacheManager';
+import { ConfigManager } from '../config/ConfigManager';
+import { generateContextMarkdown } from '../utils/markdownGenerator';
+import { saveContextFile } from '../utils/contextFileStorage';
 
 /**
  * Register the "Investigate with Copilot" command
@@ -9,10 +16,16 @@ import { IssueItem } from '../providers/JiraTreeProvider';
  * can use to provide better assistance.
  *
  * @param context - VS Code extension context
+ * @param authManager - AuthManager instance for credentials
+ * @param configManager - ConfigManager instance for settings
+ * @param cacheManager - CacheManager instance for caching
  * @returns Disposable for the command
  */
 export function registerInvestigateWithCopilotCommand(
-	context: vscode.ExtensionContext
+	context: vscode.ExtensionContext,
+	authManager: AuthManager,
+	configManager: ConfigManager,
+	cacheManager: CacheManager
 ): vscode.Disposable {
 	return vscode.commands.registerCommand(
 		'jira.investigateWithCopilot',
@@ -32,15 +45,41 @@ export function registerInvestigateWithCopilotCommand(
 						title: `Investigating ${issueKey} with Copilot...`,
 						cancellable: false
 					},
-					async () => {
-						// TODO: Feature 7.2 - Fetch full issue details
-						// TODO: Feature 7.3 - Generate markdown file
-						// TODO: Feature 7.4 - Save context file
+					async (progress) => {
+						// Get Jira client (either real or dummy)
+						progress.report({ message: 'Connecting to Jira...' });
+						const jiraClient = await getJiraClient(authManager, configManager, cacheManager);
+						if (!jiraClient) {
+							vscode.window.showErrorMessage(
+								'Unable to connect to Jira. Please run "Jira: Authenticate" to configure your credentials.'
+							);
+							return;
+						}
+
+						// Feature 7.2 - Fetch full issue details
+						progress.report({ message: 'Fetching issue details...' });
+						const issueContext = await jiraClient.getFullIssueContext(issueKey);
+
+						// Feature 7.3 - Generate markdown file
+						progress.report({ message: 'Generating context file...' });
+						const markdown = generateContextMarkdown(
+							issueContext,
+							configManager.instanceUrl
+						);
+
+						// Feature 7.4 - Save context file
+						progress.report({ message: 'Saving context file...' });
+						const filePath = await saveContextFile(
+							issueKey,
+							markdown,
+							configManager.contextFileLocation
+						);
+
 						// TODO: Feature 7.5 - Open file in editor for Copilot context
 
-						// Placeholder: Show information message
+						// Show success message
 						vscode.window.showInformationMessage(
-							`Investigation feature for ${issueKey} is coming soon! This will fetch full issue details and generate a context file for Copilot.`
+							`Context file created for ${issueKey} at ${filePath}`
 						);
 					}
 				);
@@ -51,4 +90,39 @@ export function registerInvestigateWithCopilotCommand(
 			}
 		}
 	);
+}
+
+/**
+ * Get a JiraClient instance (either real or dummy)
+ *
+ * @param authManager - AuthManager instance for credentials
+ * @param configManager - ConfigManager instance for settings
+ * @param cacheManager - CacheManager instance for caching
+ * @returns Promise that resolves to a JiraClient or DummyJiraClient, or null if not authenticated
+ */
+async function getJiraClient(
+	authManager: AuthManager,
+	configManager: ConfigManager,
+	cacheManager: CacheManager
+): Promise<JiraClient | DummyJiraClient | null> {
+	try {
+		// Check if dummy data mode is enabled
+		if (configManager.useDummyData) {
+			return new DummyJiraClient(undefined, undefined, undefined, cacheManager);
+		}
+
+		// Use real credentials for live API
+		const credentials = await authManager.getCredentials();
+		if (!credentials) {
+			return null;
+		}
+		return new JiraClient(
+			credentials.url,
+			credentials.email,
+			credentials.token,
+			cacheManager
+		);
+	} catch (error) {
+		return null;
+	}
 }
