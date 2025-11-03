@@ -564,20 +564,49 @@ export class CreateIssueWebviewProvider {
       }
     });
 
-    // Real-time validation
+    // Real-time validation on blur
     summaryInput.addEventListener('blur', () => {
       validateSummary();
+      updateSubmitButton();
+    });
+
+    // Real-time validation on input (debounced)
+    let summaryTimeout;
+    summaryInput.addEventListener('input', () => {
+      clearTimeout(summaryTimeout);
+      summaryTimeout = setTimeout(() => {
+        validateSummary();
+        updateSubmitButton();
+      }, 500);
     });
 
     if (featureEpicSelect) {
-      featureEpicSelect.addEventListener('blur', () => {
+      featureEpicSelect.addEventListener('change', () => {
         validateFeatureEpic();
+        updateSubmitButton();
       });
     }
 
     if (descriptionInput) {
       descriptionInput.addEventListener('blur', () => {
         validateDescription();
+        updateSubmitButton();
+      });
+
+      let descriptionTimeout;
+      descriptionInput.addEventListener('input', () => {
+        clearTimeout(descriptionTimeout);
+        descriptionTimeout = setTimeout(() => {
+          validateDescription();
+          updateSubmitButton();
+        }, 500);
+      });
+    }
+
+    if (prioritySelect) {
+      prioritySelect.addEventListener('change', () => {
+        validatePriority();
+        updateSubmitButton();
       });
     }
 
@@ -595,6 +624,11 @@ export class CreateIssueWebviewProvider {
         summaryError.classList.add('visible');
         summaryInput.classList.add('error');
         return false;
+      } else if (summary.length > 255) {
+        summaryError.textContent = 'Summary exceeds maximum length of 255 characters';
+        summaryError.classList.add('visible');
+        summaryInput.classList.add('error');
+        return false;
       } else {
         summaryError.classList.remove('visible');
         summaryInput.classList.remove('error');
@@ -609,6 +643,11 @@ export class CreateIssueWebviewProvider {
       // Description is required for Bug Against Feature workflow
       if (workflow === 'bugAgainstFeature' && !description) {
         descriptionError.textContent = 'Description is required for bugs against features';
+        descriptionError.classList.add('visible');
+        descriptionInput.classList.add('error');
+        return false;
+      } else if (workflow === 'bugAgainstFeature' && description.length < 20) {
+        descriptionError.textContent = 'Description should be at least 20 characters for bugs against features';
         descriptionError.classList.add('visible');
         descriptionInput.classList.add('error');
         return false;
@@ -641,6 +680,11 @@ export class CreateIssueWebviewProvider {
       }
     }
 
+    function validatePriority() {
+      // Priority is optional, so always valid
+      return true;
+    }
+
     function validateForm() {
       let isValid = true;
 
@@ -661,6 +705,14 @@ export class CreateIssueWebviewProvider {
 
       return isValid;
     }
+
+    function updateSubmitButton() {
+      const isFormValid = validateForm();
+      submitButton.disabled = !isFormValid;
+    }
+
+    // Initial validation to set button state
+    updateSubmitButton();
 
     // Form submission
     document.getElementById('createIssueForm').addEventListener('submit', (e) => {
@@ -1066,28 +1118,98 @@ export class CreateIssueWebviewProvider {
    * Generate validation functions for JavaScript
    */
   private generateValidationFunctions(fieldKeys: string[], fields: Record<string, any>): string {
+    // Generate individual field validation functions
+    const individualValidators = fieldKeys.map(key => {
+      const field = fields[key];
+      const schemaType = field.schema?.type;
+
+      if (!field.required && schemaType !== 'string' && key !== 'summary') {
+        return ''; // Skip validation for optional non-string fields
+      }
+
+      let validationLogic = '';
+
+      if (field.required) {
+        validationLogic += `
+      if (!value || value.toString().trim() === '') {
+        errorElement.textContent = '${field.name} is required';
+        errorElement.classList.add('visible');
+        fieldElement.classList.add('error');
+        return false;
+      }`;
+      }
+
+      // Add type-specific validation for summary
+      if (key === 'summary') {
+        validationLogic += `
+      if (value.length < 10) {
+        errorElement.textContent = 'Summary should be at least 10 characters';
+        errorElement.classList.add('visible');
+        fieldElement.classList.add('error');
+        return false;
+      }
+      if (value.length > 255) {
+        errorElement.textContent = 'Summary exceeds maximum length of 255 characters';
+        errorElement.classList.add('visible');
+        fieldElement.classList.add('error');
+        return false;
+      }`;
+      }
+
+      // Add type-specific validation for description
+      if (key === 'description' && field.required) {
+        validationLogic += `
+      if (value.length < 20) {
+        errorElement.textContent = 'Description should be at least 20 characters';
+        errorElement.classList.add('visible');
+        fieldElement.classList.add('error');
+        return false;
+      }`;
+      }
+
+      if (!validationLogic) {
+        return '';
+      }
+
+      return `
+    function validate_${key}() {
+      const fieldElement = document.getElementById('${key}');
+      const errorElement = document.getElementById('${key}Error');
+
+      if (!fieldElement || !errorElement) return true;
+
+      const value = fieldElement.value.trim();
+      ${validationLogic}
+
+      errorElement.classList.remove('visible');
+      fieldElement.classList.remove('error');
+      return true;
+    }`;
+    }).filter(v => v).join('\n');
+
     return `
+    ${individualValidators}
+
     function validateForm() {
       let isValid = true;
       ${fieldKeys.map(key => {
         const field = fields[key];
-        if (!field.required) return '';
+        if (!field.required && key !== 'summary') return '';
 
         return `
-      const ${key}Element = document.getElementById('${key}');
-      const ${key}Error = document.getElementById('${key}Error');
-      if (${key}Element && !${key}Element.value.trim()) {
-        ${key}Error.textContent = '${field.name} is required';
-        ${key}Error.classList.add('visible');
-        ${key}Element.classList.add('error');
+      if (typeof validate_${key} === 'function' && !validate_${key}()) {
         isValid = false;
-      } else if (${key}Error) {
-        ${key}Error.classList.remove('visible');
-        if (${key}Element) ${key}Element.classList.remove('error');
       }`;
       }).join('\n')}
 
       return isValid;
+    }
+
+    function updateSubmitButton() {
+      const submitBtn = document.getElementById('submitButton');
+      if (submitBtn) {
+        submitBtn.disabled = !validateForm();
+      }
     }
 
     // Add character counter for summary
@@ -1112,6 +1234,33 @@ export class CreateIssueWebviewProvider {
         }
       });
     }
+
+    // Attach real-time validation to all required fields
+    Object.keys(fieldsMetadata).forEach(fieldKey => {
+      const field = fieldsMetadata[fieldKey];
+      const element = document.getElementById(fieldKey);
+
+      if (element && typeof window['validate_' + fieldKey] === 'function') {
+        // Validation on blur
+        element.addEventListener('blur', () => {
+          window['validate_' + fieldKey]();
+          updateSubmitButton();
+        });
+
+        // Debounced validation on input
+        let timeout;
+        element.addEventListener('input', () => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            window['validate_' + fieldKey]();
+            updateSubmitButton();
+          }, 500);
+        });
+      }
+    });
+
+    // Initial button state
+    updateSubmitButton();
     `;
   }
 
@@ -1557,19 +1706,51 @@ export class CreateIssueWebviewProvider {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
 
-      // Send error back to webview for field-specific errors
-      if (this.panel && errorMessage.includes('Summary')) {
-        this.panel.webview.postMessage({
-          type: 'error',
-          field: 'summary',
-          message: errorMessage
+      // Parse field-specific errors from Jira API
+      let fieldErrors: { field: string; message: string }[] = [];
+
+      // Try to extract field-specific errors from Jira API error response
+      if (error instanceof Error && 'response' in error) {
+        const response = (error as any).response;
+        if (response?.data?.errors) {
+          // Jira returns errors in format: { "summary": "Summary is required", "description": "..." }
+          Object.keys(response.data.errors).forEach(fieldKey => {
+            fieldErrors.push({
+              field: fieldKey,
+              message: response.data.errors[fieldKey]
+            });
+          });
+        }
+      }
+
+      // Check for common error patterns in error message
+      if (fieldErrors.length === 0) {
+        const lowerMessage = errorMessage.toLowerCase();
+        if (lowerMessage.includes('summary')) {
+          fieldErrors.push({ field: 'summary', message: errorMessage });
+        } else if (lowerMessage.includes('description')) {
+          fieldErrors.push({ field: 'description', message: errorMessage });
+        } else if (lowerMessage.includes('epic') || lowerMessage.includes('feature')) {
+          fieldErrors.push({ field: 'featureEpic', message: errorMessage });
+        } else if (lowerMessage.includes('priority')) {
+          fieldErrors.push({ field: 'priority', message: errorMessage });
+        }
+      }
+
+      // Send field-specific errors back to webview
+      if (this.panel && fieldErrors.length > 0) {
+        fieldErrors.forEach(fieldError => {
+          this.panel!.webview.postMessage({
+            type: 'error',
+            field: fieldError.field,
+            message: fieldError.message
+          });
         });
-      } else if (this.panel && errorMessage.includes('Description')) {
-        this.panel.webview.postMessage({
-          type: 'error',
-          field: 'description',
-          message: errorMessage
-        });
+
+        // Also show a generic error notification
+        vscode.window.showErrorMessage(
+          `Failed to create ${data.issueType}: Please check the form for errors.`
+        );
       } else {
         // Show generic error
         vscode.window.showErrorMessage(
