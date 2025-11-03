@@ -78,13 +78,22 @@ export function registerInvestigateWithCopilotCommand(
 						// Feature 7.5 - Open file in editor for Copilot context
 					progress.report({ message: 'Adding to Copilot context...' });
 					await addToCopilotContext(filePath);
-
-						// Show success message
-						vscode.window.showInformationMessage(
-							`Context file created for ${issueKey} at ${filePath}`
-						);
 					}
 				);
+
+				// Feature 7.6 - User Notifications with action buttons
+				const action = await vscode.window.showInformationMessage(
+					`${issueKey} context ready for Copilot`,
+					'Open in Jira',
+					'Ask Copilot'
+				);
+
+				// Handle user action
+				if (action === 'Open in Jira') {
+					await vscode.commands.executeCommand('jira.openIssue', issueKey);
+				} else if (action === 'Ask Copilot') {
+					await vscode.commands.executeCommand('workbench.action.chat.open');
+				}
 			} catch (error) {
 				vscode.window.showErrorMessage(
 					`Failed to investigate issue: ${error instanceof Error ? error.message : String(error)}`
