@@ -26,6 +26,33 @@ export class StatusGroupItem extends vscode.TreeItem {
 }
 
 /**
+ * Tree item representing a loading state
+ */
+export class LoadingItem extends vscode.TreeItem {
+	public readonly type = 'loading';
+
+	constructor() {
+		super('Loading...', vscode.TreeItemCollapsibleState.None);
+		this.contextValue = 'loading';
+		this.iconPath = new vscode.ThemeIcon('sync~spin');
+	}
+}
+
+/**
+ * Tree item representing an error state
+ */
+export class ErrorItem extends vscode.TreeItem {
+	public readonly type = 'error';
+
+	constructor(message: string) {
+		super(`Error: ${message}`, vscode.TreeItemCollapsibleState.None);
+		this.contextValue = 'error';
+		this.iconPath = new vscode.ThemeIcon('error');
+		this.tooltip = message;
+	}
+}
+
+/**
  * Tree item representing a Jira issue
  */
 export class IssueItem extends vscode.TreeItem {
@@ -116,7 +143,7 @@ export class IssueItem extends vscode.TreeItem {
 /**
  * Type for all tree items
  */
-export type TreeItem = StatusGroupItem | IssueItem;
+export type TreeItem = StatusGroupItem | IssueItem | LoadingItem | ErrorItem;
 
 /**
  * Tree data provider for displaying Jira issues in the VS Code sidebar
@@ -130,6 +157,7 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
 	private refreshTimer?: NodeJS.Timeout;
 	private lastRefreshTime?: Date;
+	private isLoading: boolean = false;
 
 	constructor(
 		private authManager: AuthManager,
@@ -163,9 +191,15 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	/**
 	 * Refresh the entire tree view
 	 *
-	 * This triggers a reload of all data from Jira
+	 * This triggers a reload of all data from Jira.
+	 * Prevents multiple simultaneous refreshes by checking loading state.
 	 */
 	refresh(): void {
+		// Prevent multiple simultaneous refreshes
+		if (this.isLoading) {
+			return;
+		}
+
 		this.lastRefreshTime = new Date();
 		this._onDidChangeTreeData.fire();
 	}
@@ -187,6 +221,21 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	 * @returns Array of child tree items
 	 */
 	async getChildren(element?: TreeItem): Promise<TreeItem[]> {
+		// Show loading indicator at root level only
+		if (!element && this.isLoading) {
+			return [new LoadingItem()];
+		}
+
+		// Don't show loading states for children (status groups, loading, error items)
+		if (element && (element.type === 'loading' || element.type === 'error')) {
+			return [];
+		}
+
+		// Set loading state when fetching root data
+		if (!element) {
+			this.isLoading = true;
+		}
+
 		try {
 			// Check if credentials are available
 			const client = await this.getJiraClient();
@@ -198,18 +247,32 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
 			if (!element) {
 				// Root level - return status groups
-				return await this.getStatusGroups(client);
+				const result = await this.getStatusGroups(client);
+				return result;
 			} else if (element.type === 'statusGroup') {
 				// Return issues for this status
 				return await this.getIssuesForStatus(client, (element as StatusGroupItem).status);
 			}
 			return [];
 		} catch (error) {
-			// If there's an error fetching data, show an error message
-			vscode.window.showErrorMessage(
-				`Failed to fetch Jira issues: ${error instanceof Error ? error.message : String(error)}`
-			);
+			// If there's an error fetching data, show an error item
+			const errorMessage = error instanceof Error ? error.message : String(error);
+
+			// Also show a notification for root-level errors
+			if (!element) {
+				vscode.window.showErrorMessage(
+					`Failed to fetch Jira issues: ${errorMessage}`
+				);
+				return [new ErrorItem(errorMessage)];
+			}
+
+			// For child elements, just return empty array
 			return [];
+		} finally {
+			// Clear loading state when done
+			if (!element) {
+				this.isLoading = false;
+			}
 		}
 	}
 
