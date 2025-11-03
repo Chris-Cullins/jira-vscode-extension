@@ -95,12 +95,12 @@
         "title": "Add Comment"
       },
       {
-        "command": "jira.createBugAgainstFeature",
+        "command": "jira.createBug",
         "title": "Jira: Create Bug Against Feature",
         "icon": "$(bug)"
       },
       {
-        "command": "jira.createInternalDefect",
+        "command": "jira.createDefect",
         "title": "Jira: Create Internal Defect",
         "icon": "$(bug)"
       },
@@ -113,11 +113,6 @@
         "command": "jira.createTask",
         "title": "Jira: Create Task",
         "icon": "$(checklist)"
-      },
-      {
-        "command": "jira.createSubtask",
-        "title": "Jira: Create Subtask",
-        "icon": "$(list-tree)"
       }
     ],
     "configuration": {

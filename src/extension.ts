@@ -126,7 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register "Create Bug Against Feature" command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('jira.createBugAgainstFeature', async () => {
+		vscode.commands.registerCommand('jira.createBug', async () => {
 			const provider = await getOrCreateWebviewProvider();
 			if (provider) {
 				await provider.show('bugAgainstFeature', 'Bug');
@@ -134,9 +134,9 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	// Register "Create Internal Defect" command (for future use)
+	// Register "Create Internal Defect" command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('jira.createInternalDefect', async () => {
+		vscode.commands.registerCommand('jira.createDefect', async () => {
 			const provider = await getOrCreateWebviewProvider();
 			if (provider) {
 				await provider.show('internalDefect', 'Bug');
@@ -160,16 +160,6 @@ export function activate(context: vscode.ExtensionContext) {
 			const provider = await getOrCreateWebviewProvider();
 			if (provider) {
 				await provider.show('task', 'Task');
-			}
-		})
-	);
-
-	// Register "Create Subtask" command
-	context.subscriptions.push(
-		vscode.commands.registerCommand('jira.createSubtask', async () => {
-			const provider = await getOrCreateWebviewProvider();
-			if (provider) {
-				await provider.show('subtask', 'Sub-task');
 			}
 		})
 	);

@@ -62,7 +62,7 @@
 - [x] Feature 6.5: Other Issue Types (Story, Task, Subtask)
 - [x] Feature 6.6: Field Validation
 - [x] Feature 6.7: Form Submission Logic
-- [ ] Feature 6.8: Command Registration
+- [x] Feature 6.8: Command Registration
 - [ ] Feature 6.9: Sidebar Create Button
 
 ## Epic 7: Investigate with Copilot
