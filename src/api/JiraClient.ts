@@ -1009,6 +1009,84 @@ export class JiraClient {
       throw error;
     }
   }
+
+  /**
+   * Create a remote link to an external resource (e.g., GitHub PR)
+   *
+   * @param issueKey - The issue key to add the link to
+   * @param url - The URL to link
+   * @param title - Optional title for the link (defaults to URL)
+   * @returns Promise with the created remote link
+   * @throws JiraNotFoundError if the issue doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   * @throws JiraAPIError for other errors
+   */
+  async createRemoteLink(issueKey: string, url: string, title?: string): Promise<any> {
+    // Validate required fields
+    if (!url || url.trim().length === 0) {
+      throw new JiraAPIError('URL is required', 400);
+    }
+
+    // Build the request payload
+    const payload = {
+      object: {
+        url: url.trim(),
+        title: title?.trim() || url.trim()
+      }
+    };
+
+    try {
+      const response = await this.request<any>(
+        'POST',
+        `/issue/${issueKey}/remotelink`,
+        payload
+      );
+
+      // Invalidate issue details cache since a link was added
+      this.cache.invalidate(`issueDetails:${issueKey}`);
+
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Issue '${issueKey}' not found. Please verify the issue key.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while creating remote link. Please verify your credentials.');
+        } else if (error.statusCode === 400) {
+          throw new JiraAPIError(`Failed to create remote link: ${error.message}`, 400, error.response);
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get remote links for an issue
+   *
+   * @param issueKey - The issue key
+   * @returns Promise with array of remote links
+   * @throws JiraNotFoundError if the issue doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getRemoteLinks(issueKey: string): Promise<any[]> {
+    try {
+      const response = await this.request<any[]>(
+        'GET',
+        `/issue/${issueKey}/remotelink`
+      );
+
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Issue '${issueKey}' not found. Please verify the issue key.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while fetching remote links. Please verify your credentials.');
+        }
+      }
+      throw error;
+    }
+  }
 }
 
 /**

@@ -16,6 +16,10 @@ import { registerInvestigateWithCopilotCommand, registerInvestigateTicketCommand
 import { JiraClient } from './api/JiraClient';
 import { DummyJiraClient } from './api/DummyJiraClient';
 import { GetIssueInfoTool } from './tools/GetIssueInfoTool';
+import { AddCommentTool } from './tools/AddCommentTool';
+import { UpdateStatusTool } from './tools/UpdateStatusTool';
+import { LinkPRTool } from './tools/LinkPRTool';
+import { CreateSubtaskTool } from './tools/CreateSubtaskTool';
 
 /**
  * Global extension context - accessible to all modules
@@ -105,17 +109,46 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(registerInvestigateWithCopilotCommand(context, authManager, configManager, cacheManager));
 	context.subscriptions.push(registerInvestigateTicketCommand(context, authManager, configManager, cacheManager));
 
-	// Register Language Model Tools (Feature 8.1 - Proof of Concept)
+	// Register Language Model Tools (Features 8.1-8.6)
 	// Only register if Copilot tools are enabled in configuration
 	if (configManager.enableCopilotTools) {
 		try {
+			// Feature 8.1: Get Issue Info Tool (Proof of Concept)
 			const getIssueInfoTool = new GetIssueInfoTool(context, authManager, cacheManager);
 			context.subscriptions.push(
 				vscode.lm.registerTool('jira_get_issue_info', getIssueInfoTool)
 			);
 			outputChannel.appendLine('Language Model Tool registered: jira_get_issue_info');
+
+			// Feature 8.3: Add Comment Tool
+			const addCommentTool = new AddCommentTool(context, authManager, cacheManager);
+			context.subscriptions.push(
+				vscode.lm.registerTool('jira_add_comment', addCommentTool)
+			);
+			outputChannel.appendLine('Language Model Tool registered: jira_add_comment');
+
+			// Feature 8.4: Update Status Tool
+			const updateStatusTool = new UpdateStatusTool(context, authManager, cacheManager);
+			context.subscriptions.push(
+				vscode.lm.registerTool('jira_update_status', updateStatusTool)
+			);
+			outputChannel.appendLine('Language Model Tool registered: jira_update_status');
+
+			// Feature 8.5: Link PR Tool
+			const linkPRTool = new LinkPRTool(context, authManager, cacheManager);
+			context.subscriptions.push(
+				vscode.lm.registerTool('jira_link_pr', linkPRTool)
+			);
+			outputChannel.appendLine('Language Model Tool registered: jira_link_pr');
+
+			// Feature 8.6: Create Subtask Tool
+			const createSubtaskTool = new CreateSubtaskTool(context, authManager, cacheManager);
+			context.subscriptions.push(
+				vscode.lm.registerTool('jira_create_subtask', createSubtaskTool)
+			);
+			outputChannel.appendLine('Language Model Tool registered: jira_create_subtask');
 		} catch (error) {
-			outputChannel.appendLine(`Failed to register Language Model Tool: ${error}`);
+			outputChannel.appendLine(`Failed to register Language Model Tools: ${error}`);
 			// Don't fail extension activation if tool registration fails
 		}
 	}

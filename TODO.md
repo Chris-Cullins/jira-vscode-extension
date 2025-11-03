@@ -79,11 +79,11 @@
 ## Epic 8 & 9: Copilot Tools Integration
 
 - [x] Feature 8.1: Language Model Tools API Research
-- [ ] Feature 8.2: Tools Provider Implementation
-- [ ] Feature 8.3: Tool: Add Comment
-- [ ] Feature 8.4: Tool: Update Status
-- [ ] Feature 8.5: Tool: Link PR
-- [ ] Feature 8.6: Tool: Create Subtask
+- [x] Feature 8.2: Tools Provider Implementation
+- [x] Feature 8.3: Tool: Add Comment
+- [x] Feature 8.4: Tool: Update Status
+- [x] Feature 8.5: Tool: Link PR
+- [x] Feature 8.6: Tool: Create Subtask
 - [ ] Feature 8.7: Tool: Log Time (Optional)
 - [ ] Feature 8.8: Confirmation Flows
 - [ ] Feature 8.9: Tool Usage Documentation
