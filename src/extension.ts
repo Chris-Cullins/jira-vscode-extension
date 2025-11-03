@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const configChangeHandler = new ConfigChangeHandler(configManager, authManager, outputChannel);
 
 	// Initialize Tree View Provider
-	const treeProvider = new JiraTreeProvider(authManager, configManager, cacheManager);
+	const treeProvider = new JiraTreeProvider(context, authManager, configManager, cacheManager);
 	const treeView = vscode.window.createTreeView('jiraMyWork', {
 		treeDataProvider: treeProvider,
 		showCollapseAll: true

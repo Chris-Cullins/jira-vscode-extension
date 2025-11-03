@@ -169,10 +169,14 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	};
 
 	constructor(
+		private context: vscode.ExtensionContext,
 		private authManager: AuthManager,
 		private configManager: ConfigManager,
 		private cacheManager: CacheManager
-	) {}
+	) {
+		// Load saved filters from workspace state
+		this.loadFilters();
+	}
 
 	/**
 	 * Create a JiraClient instance with current credentials
@@ -459,6 +463,50 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	// ==================== Filter Methods ====================
 
 	/**
+	 * Load saved filters from workspace state
+	 *
+	 * Restores filter state from the workspace storage, allowing filters
+	 * to persist across VS Code sessions.
+	 */
+	private loadFilters(): void {
+		try {
+			const saved = this.context.workspaceState.get<{
+				issueTypes: string[];
+				priorities: string[];
+				sprints: string[];
+			}>('jira.filters');
+
+			if (saved) {
+				this.filters.issueTypes = new Set(saved.issueTypes || []);
+				this.filters.priorities = new Set(saved.priorities || []);
+				this.filters.sprints = new Set(saved.sprints || []);
+			}
+		} catch (error) {
+			// If loading fails, just use default empty filters
+			console.error('Failed to load saved filters:', error);
+		}
+	}
+
+	/**
+	 * Save current filter state to workspace state
+	 *
+	 * Persists the current filter settings so they can be restored
+	 * when VS Code is reopened.
+	 */
+	private async saveFilters(): Promise<void> {
+		try {
+			await this.context.workspaceState.update('jira.filters', {
+				issueTypes: Array.from(this.filters.issueTypes),
+				priorities: Array.from(this.filters.priorities),
+				sprints: Array.from(this.filters.sprints)
+			});
+		} catch (error) {
+			// Saving filters is not critical, just log the error
+			console.error('Failed to save filters:', error);
+		}
+	}
+
+	/**
 	 * Apply filters to issues
 	 *
 	 * Filters issues based on the current filter state (issue types, priorities, sprints)
@@ -537,6 +585,9 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 		// Update filter state
 		this.filters.issueTypes = new Set(selected);
 
+		// Save filter state
+		await this.saveFilters();
+
 		// Show status message
 		if (selected.length === 0) {
 			vscode.window.showInformationMessage('Showing all issue types');
@@ -572,6 +623,9 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
 		// Update filter state
 		this.filters.priorities = new Set(selected);
+
+		// Save filter state
+		await this.saveFilters();
 
 		// Show status message
 		if (selected.length === 0) {
@@ -650,6 +704,9 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 			// Update filter state
 			this.filters.sprints = new Set(selected.map(item => item.sprintId || 'NO_SPRINT'));
 
+			// Save filter state
+			await this.saveFilters();
+
 			// Show status message
 			if (selected.length === 0) {
 				vscode.window.showInformationMessage('Showing all sprints');
@@ -671,11 +728,15 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	 * Clear all filters
 	 *
 	 * Resets all filter state and refreshes the tree view to show all issues.
+	 * Also clears the saved filter state from workspace storage.
 	 */
-	clearFilters(): void {
+	async clearFilters(): Promise<void> {
 		this.filters.issueTypes.clear();
 		this.filters.priorities.clear();
 		this.filters.sprints.clear();
+
+		// Clear saved filters
+		await this.saveFilters();
 
 		vscode.window.showInformationMessage('All filters cleared');
 		this.refresh();
