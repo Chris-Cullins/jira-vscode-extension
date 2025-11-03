@@ -75,7 +75,9 @@ export function registerInvestigateWithCopilotCommand(
 							configManager.contextFileLocation
 						);
 
-						// TODO: Feature 7.5 - Open file in editor for Copilot context
+						// Feature 7.5 - Open file in editor for Copilot context
+					progress.report({ message: 'Adding to Copilot context...' });
+					await addToCopilotContext(filePath);
 
 						// Show success message
 						vscode.window.showInformationMessage(
@@ -90,6 +92,28 @@ export function registerInvestigateWithCopilotCommand(
 			}
 		}
 	);
+}
+
+/**
+ * Add a context file to Copilot's workspace context by opening it in the editor
+ *
+ * Feature 7.5: Copilot Context Integration
+ *
+ * Opening the file in the editor automatically adds it to Copilot's workspace context,
+ * allowing Copilot to use the issue details when providing assistance.
+ *
+ * @param filePath - Absolute path to the context file
+ */
+async function addToCopilotContext(filePath: string): Promise<void> {
+	// Open file in editor (adds to Copilot context)
+	const doc = await vscode.workspace.openTextDocument(filePath);
+	await vscode.window.showTextDocument(doc, {
+		preview: false, // Not in preview mode - file stays open
+		viewColumn: vscode.ViewColumn.Beside // Open in split view
+	});
+
+	// Optionally: Use Copilot API to explicitly add to context
+	// (if such API exists in future)
 }
 
 /**
