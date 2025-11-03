@@ -136,6 +136,31 @@ export function registerFilterByIssueTypeCommand(
 }
 
 /**
+ * Register the filter by priority command
+ *
+ * Shows a quick pick to filter issues by their priority (Highest, High, Medium, Low, Lowest).
+ * Users can select multiple priorities or clear the filter.
+ *
+ * @param context - VS Code extension context
+ * @param treeProvider - The Jira tree provider instance
+ * @returns Disposable for the command
+ */
+export function registerFilterByPriorityCommand(
+	context: vscode.ExtensionContext,
+	treeProvider: JiraTreeProvider
+): vscode.Disposable {
+	return vscode.commands.registerCommand('jira.filterByPriority', async () => {
+		try {
+			await treeProvider.filterByPriority();
+		} catch (error) {
+			vscode.window.showErrorMessage(
+				`Failed to apply filter: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
+	});
+}
+
+/**
  * Register the clear filters command
  *
  * Clears all active filters (issue type, priority, sprint) and

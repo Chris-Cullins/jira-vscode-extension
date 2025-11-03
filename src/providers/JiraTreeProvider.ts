@@ -526,6 +526,42 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	}
 
 	/**
+	 * Show quick pick to filter by priority
+	 *
+	 * Allows user to select multiple priorities to show.
+	 * If no priorities are selected, all priorities are shown.
+	 */
+	async filterByPriority(): Promise<void> {
+		// Define standard Jira priorities
+		const allPriorities = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
+
+		// Show multi-select quick pick
+		const selected = await vscode.window.showQuickPick(allPriorities, {
+			canPickMany: true,
+			placeHolder: 'Select priorities to show (or cancel to show all)',
+			title: 'Filter by Priority'
+		});
+
+		// If user cancelled, don't change filters
+		if (selected === undefined) {
+			return;
+		}
+
+		// Update filter state
+		this.filters.priorities = new Set(selected);
+
+		// Show status message
+		if (selected.length === 0) {
+			vscode.window.showInformationMessage('Showing all priorities');
+		} else {
+			vscode.window.showInformationMessage(`Filtering: ${selected.join(', ')}`);
+		}
+
+		// Refresh tree view
+		this.refresh();
+	}
+
+	/**
 	 * Clear all filters
 	 *
 	 * Resets all filter state and refreshes the tree view to show all issues.
