@@ -67,6 +67,11 @@
         "icon": "$(list-filter)"
       },
       {
+        "command": "jira.filterBySprint",
+        "title": "Filter by Sprint",
+        "icon": "$(milestone)"
+      },
+      {
         "command": "jira.clearFilters",
         "title": "Clear Filters",
         "icon": "$(clear-all)"
@@ -152,6 +157,11 @@
         },
         {
           "command": "jira.filterByPriority",
+          "when": "view == jiraMyWork",
+          "group": "navigation"
+        },
+        {
+          "command": "jira.filterBySprint",
           "when": "view == jiraMyWork",
           "group": "navigation"
         },

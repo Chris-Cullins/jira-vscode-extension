@@ -46,7 +46,7 @@
 
 - [x] Feature 5.1: Filter by Issue Type
 - [x] Feature 5.2: Filter by Priority
-- [ ] Feature 5.3: Filter by Sprint
+- [x] Feature 5.3: Filter by Sprint
 - [ ] Feature 5.4: Filter Persistence
 - [ ] Feature 5.5: Search/Filter Input
 - [ ] Feature 5.6: Change Status Action

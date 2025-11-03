@@ -480,10 +480,33 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 				return false;
 			}
 
-			// Filter by sprint (TODO: implement when sprint field is available)
-			// if (this.filters.sprints.size > 0) {
-			//   // Sprint filtering logic
-			// }
+			// Filter by sprint
+			if (this.filters.sprints.size > 0) {
+				// Get sprint information from issue
+				// Sprint can be in either 'sprint' or 'customfield_10016' fields
+				const sprint = issue.fields.sprint || issue.fields.customfield_10016;
+
+				// Handle issues with no sprint
+				if (!sprint || (Array.isArray(sprint) && sprint.length === 0)) {
+					// Issue has no sprint - check if NO_SPRINT filter is active
+					if (!this.filters.sprints.has('NO_SPRINT')) {
+						return false;
+					}
+				} else {
+					// Issue has sprint(s) - check if any match the filter
+					const issueSprints = Array.isArray(sprint) ? sprint : [sprint];
+					const issueSprintIds = issueSprints.map((s: any) => s.id?.toString() || 'NO_SPRINT');
+
+					// Check if any of the issue's sprints match the filter
+					const hasMatchingSprint = issueSprintIds.some(
+						(sprintId: string) => this.filters.sprints.has(sprintId)
+					);
+
+					if (!hasMatchingSprint) {
+						return false;
+					}
+				}
+			}
 
 			return true;
 		});
@@ -559,6 +582,89 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
 		// Refresh tree view
 		this.refresh();
+	}
+
+	/**
+	 * Show quick pick to filter by sprint
+	 *
+	 * Allows user to select multiple sprints to show.
+	 * If no sprints are selected, all sprints are shown.
+	 * Includes an option to show issues without a sprint.
+	 */
+	async filterBySprint(): Promise<void> {
+		try {
+			// Get Jira client
+			const client = await this.getJiraClient();
+			if (!client) {
+				vscode.window.showErrorMessage('Please configure Jira credentials first');
+				return;
+			}
+
+			// Fetch available sprints
+			const sprints = await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: 'Fetching sprints...',
+					cancellable: false
+				},
+				async () => {
+					return await client.getSprints();
+				}
+			);
+
+			if (sprints.length === 0) {
+				vscode.window.showInformationMessage('No active or future sprints found');
+				return;
+			}
+
+			// Create quick pick items from sprints
+			interface SprintQuickPickItem extends vscode.QuickPickItem {
+				sprintId: string | null;
+			}
+
+			const sprintItems: SprintQuickPickItem[] = sprints.map(sprint => ({
+				label: sprint.name,
+				description: sprint.state === 'active' ? '$(sync~spin) Active' : '$(calendar) Future',
+				sprintId: sprint.id.toString()
+			}));
+
+			// Add option to show issues without sprint
+			sprintItems.push({
+				label: '(No Sprint)',
+				description: 'Issues not assigned to any sprint',
+				sprintId: null
+			});
+
+			// Show multi-select quick pick
+			const selected = await vscode.window.showQuickPick(sprintItems, {
+				canPickMany: true,
+				placeHolder: 'Select sprints to show (or cancel to show all)',
+				title: 'Filter by Sprint'
+			});
+
+			// If user cancelled, don't change filters
+			if (selected === undefined) {
+				return;
+			}
+
+			// Update filter state
+			this.filters.sprints = new Set(selected.map(item => item.sprintId || 'NO_SPRINT'));
+
+			// Show status message
+			if (selected.length === 0) {
+				vscode.window.showInformationMessage('Showing all sprints');
+			} else {
+				const sprintNames = selected.map(item => item.label).join(', ');
+				vscode.window.showInformationMessage(`Filtering: ${sprintNames}`);
+			}
+
+			// Refresh tree view
+			this.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(
+				`Failed to fetch sprints: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
 	}
 
 	/**

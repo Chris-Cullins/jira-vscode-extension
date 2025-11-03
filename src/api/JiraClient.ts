@@ -680,6 +680,80 @@ export class JiraClient {
   }
 
   /**
+   * Fetch sprints for a board
+   *
+   * Note: This uses the Jira Agile (board) API. The board ID is required.
+   * For simplicity, we'll fetch sprints across all boards that are accessible.
+   *
+   * @param useCache - Whether to use cached results (default: true)
+   * @returns Promise with array of JiraSprint objects
+   * @throws JiraAuthenticationError if authentication fails
+   */
+  async getSprints(useCache: boolean = true): Promise<any[]> {
+    const cacheKey = 'sprints';
+
+    // Check cache first
+    if (useCache) {
+      const cached = this.cache.get<any[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    try {
+      // First, get all boards
+      const boardsResponse = await this.request<any>(
+        'GET',
+        '/board',
+        { maxResults: 100 }
+      );
+
+      const allSprints: any[] = [];
+
+      // For each board, fetch its sprints
+      for (const board of boardsResponse.values || []) {
+        try {
+          const sprintsResponse = await this.request<any>(
+            'GET',
+            `/board/${board.id}/sprint`,
+            { maxResults: 100 }
+          );
+
+          // Add sprints from this board, filtering for active and future
+          const relevantSprints = (sprintsResponse.values || []).filter(
+            (sprint: any) => sprint.state === 'active' || sprint.state === 'future'
+          );
+
+          allSprints.push(...relevantSprints);
+        } catch (error) {
+          // If we can't fetch sprints for a board, continue to next board
+          console.error(`Failed to fetch sprints for board ${board.id}:`, error);
+        }
+      }
+
+      // Remove duplicates by sprint ID
+      const uniqueSprints = Array.from(
+        new Map(allSprints.map(sprint => [sprint.id, sprint])).values()
+      );
+
+      // Sort by name
+      uniqueSprints.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+      // Cache the results
+      this.cache.set(cacheKey, uniqueSprints, CacheTTL.PROJECTS);
+
+      return uniqueSprints;
+    } catch (error) {
+      if (error instanceof JiraAPIError && error.statusCode === 401) {
+        throw new JiraAuthenticationError('Authentication failed while fetching sprints. Please verify your credentials.');
+      }
+      // If sprints API is not available, return empty array
+      console.error('Failed to fetch sprints:', error);
+      return [];
+    }
+  }
+
+  /**
    * Fetch create metadata for dynamic form building
    *
    * This endpoint returns detailed information about what fields are available,
