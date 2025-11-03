@@ -89,6 +89,10 @@
       {
         "command": "jira.changeStatus",
         "title": "Change Status"
+      },
+      {
+        "command": "jira.addComment",
+        "title": "Add Comment"
       }
     ],
     "configuration": {
@@ -210,6 +214,11 @@
           "command": "jira.changeStatus",
           "when": "view == jiraMyWork && viewItem == issue",
           "group": "actions@1"
+        },
+        {
+          "command": "jira.addComment",
+          "when": "view == jiraMyWork && viewItem == issue",
+          "group": "actions@2"
         }
       ]
     }

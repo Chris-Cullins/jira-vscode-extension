@@ -364,3 +364,74 @@ export function registerChangeStatusCommand(
 		}
 	});
 }
+
+/**
+ * Register the add comment command
+ *
+ * Allows users to add a comment to a Jira issue.
+ * Shows an input box for the comment text and submits it to Jira.
+ *
+ * @param context - VS Code extension context
+ * @param authManager - Authentication manager instance
+ * @param cacheManager - Cache manager instance
+ * @returns Disposable for the command
+ */
+export function registerAddCommentCommand(
+	context: vscode.ExtensionContext,
+	authManager: AuthManager,
+	cacheManager: CacheManager
+): vscode.Disposable {
+	return vscode.commands.registerCommand('jira.addComment', async (item: IssueItem) => {
+		try {
+			// Get credentials
+			const credentials = await authManager.getCredentials();
+			if (!credentials) {
+				vscode.window.showErrorMessage('Please configure Jira credentials first');
+				return;
+			}
+
+			// Show input box for comment text
+			const comment = await vscode.window.showInputBox({
+				prompt: `Add comment to ${item.issue.key}`,
+				placeHolder: 'Enter your comment...',
+				validateInput: (value) => {
+					return value.trim().length > 0 ? null : 'Comment cannot be empty';
+				}
+			});
+
+			// If user cancelled, exit
+			if (!comment) {
+				return;
+			}
+
+			// Create Jira client
+			const jiraClient = new JiraClient(
+				credentials.url,
+				credentials.email,
+				credentials.token,
+				cacheManager
+			);
+
+			// Add the comment with progress indication
+			await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: `Adding comment to ${item.issue.key}...`,
+					cancellable: false
+				},
+				async () => {
+					await jiraClient.addComment(item.issue.key, comment);
+				}
+			);
+
+			// Show success message
+			vscode.window.showInformationMessage(
+				`Comment added to ${item.issue.key}`
+			);
+		} catch (error) {
+			vscode.window.showErrorMessage(
+				`Failed to add comment: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
+	});
+}
