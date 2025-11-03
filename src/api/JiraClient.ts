@@ -1087,6 +1087,69 @@ export class JiraClient {
       throw error;
     }
   }
+
+  /**
+   * Log work time to an issue
+   *
+   * @param issueKey - The issue key (e.g., 'PROJ-123')
+   * @param timeSpentSeconds - Time spent in seconds
+   * @param comment - Optional work description/comment
+   * @param startDate - Optional start date for the work (defaults to now)
+   * @returns Promise with the created worklog entry
+   * @throws JiraNotFoundError if the issue doesn't exist
+   * @throws JiraAuthenticationError if authentication fails
+   * @throws JiraAPIError for other errors
+   */
+  async logTime(
+    issueKey: string,
+    timeSpentSeconds: number,
+    comment?: string,
+    startDate?: Date
+  ): Promise<any> {
+    // Validate required fields
+    if (!timeSpentSeconds || timeSpentSeconds <= 0) {
+      throw new JiraAPIError('Time spent must be greater than 0', 400);
+    }
+
+    // Build the request payload
+    const payload: any = {
+      timeSpentSeconds: Math.round(timeSpentSeconds)
+    };
+
+    // Add optional start date (defaults to current time if not provided)
+    if (startDate) {
+      payload.started = startDate.toISOString().replace('Z', '+0000');
+    }
+
+    // Add optional comment (convert to ADF format)
+    if (comment && comment.trim().length > 0) {
+      payload.comment = this.convertTextToADF(comment);
+    }
+
+    try {
+      const response = await this.request<any>(
+        'POST',
+        `/issue/${issueKey}/worklog`,
+        payload
+      );
+
+      // Invalidate issue details cache since worklog was added
+      this.cache.invalidate(`issueDetails:${issueKey}`);
+
+      return response;
+    } catch (error) {
+      if (error instanceof JiraAPIError) {
+        if (error.statusCode === 404) {
+          throw new JiraNotFoundError(`Issue '${issueKey}' not found. Please verify the issue key.`);
+        } else if (error.statusCode === 401) {
+          throw new JiraAuthenticationError('Authentication failed while logging time. Please verify your credentials.');
+        } else if (error.statusCode === 400) {
+          throw new JiraAPIError(`Failed to log time: ${error.message}`, 400, error.response);
+        }
+      }
+      throw error;
+    }
+  }
 }
 
 /**

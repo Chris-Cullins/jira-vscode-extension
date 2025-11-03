@@ -20,6 +20,7 @@ import { AddCommentTool } from './tools/AddCommentTool';
 import { UpdateStatusTool } from './tools/UpdateStatusTool';
 import { LinkPRTool } from './tools/LinkPRTool';
 import { CreateSubtaskTool } from './tools/CreateSubtaskTool';
+import { LogTimeTool } from './tools/LogTimeTool';
 
 /**
  * Global extension context - accessible to all modules
@@ -147,6 +148,13 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.lm.registerTool('jira_create_subtask', createSubtaskTool)
 			);
 			outputChannel.appendLine('Language Model Tool registered: jira_create_subtask');
+
+			// Feature 8.7: Log Time Tool
+			const logTimeTool = new LogTimeTool(context, authManager, cacheManager);
+			context.subscriptions.push(
+				vscode.lm.registerTool('jira_log_time', logTimeTool)
+			);
+			outputChannel.appendLine('Language Model Tool registered: jira_log_time');
 		} catch (error) {
 			outputChannel.appendLine(`Failed to register Language Model Tools: ${error}`);
 			// Don't fail extension activation if tool registration fails
