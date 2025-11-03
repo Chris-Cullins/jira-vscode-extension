@@ -133,6 +133,19 @@ export class ConfigManager {
     return this.config.get<number>('maxIssues', 100);
   }
 
+  /**
+   * Check if dummy data mode is enabled
+   *
+   * When enabled, the extension will use dummy data instead of making
+   * real API calls to Jira. Useful for testing the UI without credentials.
+   *
+   * @returns true if dummy data mode is enabled, false otherwise
+   *          Default: false
+   */
+  get useDummyData(): boolean {
+    return this.config.get<boolean>('useDummyData', false);
+  }
+
   // ==================== Configuration Setters ====================
 
   /**
@@ -236,6 +249,17 @@ export class ConfigManager {
     await this.update('maxIssues', maxIssues, global);
   }
 
+  /**
+   * Enable or disable dummy data mode
+   *
+   * @param enabled - true to enable dummy data mode, false to use real API
+   * @param global - If true, updates user settings; if false, updates workspace settings
+   * @returns Promise that resolves when the configuration is updated
+   */
+  async setUseDummyData(enabled: boolean, global: boolean = false): Promise<void> {
+    await this.update('useDummyData', enabled, global);
+  }
+
   // ==================== Validation ====================
 
   /**
@@ -336,7 +360,8 @@ export class ConfigManager {
         : `${this.autoRefreshInterval} seconds`,
       contextFileLocation: this.contextFileLocation,
       enableCopilotTools: this.enableCopilotTools,
-      maxIssues: this.maxIssues
+      maxIssues: this.maxIssues,
+      useDummyData: this.useDummyData
     };
   }
 }

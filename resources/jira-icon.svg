@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M3 3h18v18H3z"/>
-  <path d="M12 8v8"/>
-  <path d="M8 12h8"/>
-  <circle cx="12" cy="12" r="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+  <text x="12" y="10" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="currentColor">42</text>
+  <text x="12" y="19" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" font-weight="600" fill="currentColor">Jira</text>
 </svg>

@@ -1,8 +1,8 @@
-# Product Requirements Document: Jira VS Code Extension
+# Product Requirements Document: 42-Jira-Buddy
 
 ## Overview
 
-A VS Code extension that streamlines Jira workflow management directly within the development environment, reducing context switching and friction in ticket management, particularly for QA bug reporting and developer productivity.
+42-Jira-Buddy is a VS Code extension that streamlines Jira workflow management directly within the development environment, reducing context switching and friction in ticket management, particularly for QA bug reporting and developer productivity.
 
 ## Goals
 

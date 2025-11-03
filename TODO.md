@@ -1,4 +1,4 @@
-# Jira VS Code Extension - TODO List
+# 42-Jira-Buddy - TODO List
 
 > This TODO list is generated from [FEATURES.md](./FEATURES.md). See FEATURES.md for detailed implementation specifications.
 

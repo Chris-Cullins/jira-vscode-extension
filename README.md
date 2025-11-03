@@ -1,6 +1,6 @@
-# Jira VS Code Extension
+# 42-Jira-Buddy
 
-Seamless Jira integration for VS Code with GitHub Copilot support.
+Your friendly Jira companion for VS Code with GitHub Copilot support.
 
 ## Features
 

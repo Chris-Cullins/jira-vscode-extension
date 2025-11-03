@@ -1,7 +1,7 @@
 {
-  "name": "jira-vscode-extension",
-  "displayName": "Jira Extension",
-  "description": "Seamless Jira integration for VS Code with GitHub Copilot support",
+  "name": "42-jira-buddy",
+  "displayName": "42-Jira-Buddy",
+  "description": "Your friendly Jira companion for VS Code with GitHub Copilot support",
   "version": "0.1.0",
   "publisher": "your-publisher-name",
   "engines": {
@@ -123,10 +123,14 @@
         "command": "jira.investigateWithCopilot",
         "title": "Investigate with Copilot",
         "icon": "$(copilot)"
+      },
+      {
+        "command": "jira.toggleDummyData",
+        "title": "Jira: Toggle Dummy Data Mode"
       }
     ],
     "configuration": {
-      "title": "Jira Extension",
+      "title": "42-Jira-Buddy",
       "properties": {
         "jiraExtension.instanceUrl": {
           "type": "string",
@@ -165,6 +169,11 @@
           "type": "number",
           "default": 100,
           "description": "Maximum number of issues to fetch"
+        },
+        "jiraExtension.useDummyData": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use dummy data instead of connecting to Jira API (for testing UI without credentials)"
         }
       }
     },

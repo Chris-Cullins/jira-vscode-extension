@@ -102,7 +102,7 @@ export class ConfigValidator {
     if (result.errors.length > 0) {
       const errorMessage = `Configuration errors:\n${result.errors.join('\n')}`;
       vscode.window.showErrorMessage(
-        `Jira Extension configuration is invalid. ${result.errors[0]}`,
+        `42-Jira-Buddy configuration is invalid. ${result.errors[0]}`,
         'Open Settings',
         'Run Setup Wizard'
       ).then(selection => {
@@ -114,7 +114,7 @@ export class ConfigValidator {
       });
     } else if (result.warnings.length > 0) {
       vscode.window.showWarningMessage(
-        `Jira Extension configuration has warnings: ${result.warnings[0]}`,
+        `42-Jira-Buddy configuration has warnings: ${result.warnings[0]}`,
         'View All Warnings'
       ).then(selection => {
         if (selection === 'View All Warnings' && outputChannel) {
@@ -123,7 +123,7 @@ export class ConfigValidator {
       });
     } else {
       vscode.window.showInformationMessage(
-        'Jira Extension configuration is valid and connection is working!'
+        '42-Jira-Buddy configuration is valid and connection is working!'
       );
     }
 

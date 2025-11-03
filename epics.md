@@ -1,4 +1,4 @@
-# Jira VS Code Extension - Development Epics
+# 42-Jira-Buddy - Development Epics
 
 This document breaks down the PRD into actionable development epics with clear acceptance criteria and dependencies.
 

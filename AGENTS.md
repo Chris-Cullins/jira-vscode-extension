@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-This is a **Jira VS Code Extension** that provides seamless integration between Visual Studio Code and Atlassian Jira. The extension enables developers to view, create, and manage Jira tickets directly from their editor, with special integration for GitHub Copilot.
+This is **42-Jira-Buddy**, a VS Code extension that provides seamless integration between Visual Studio Code and Atlassian Jira. The extension enables developers to view, create, and manage Jira tickets directly from their editor, with special integration for GitHub Copilot.
 
 ### Primary Goals
 

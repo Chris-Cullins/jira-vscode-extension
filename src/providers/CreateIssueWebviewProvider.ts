@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { JiraClient } from '../api/JiraClient';
+import { DummyJiraClient } from '../api/DummyJiraClient';
 import { ConfigManager } from '../config/ConfigManager';
 
 /**
@@ -22,12 +23,12 @@ export class CreateIssueWebviewProvider {
    * Creates a new CreateIssueWebviewProvider
    *
    * @param context - VS Code extension context
-   * @param jiraClient - JiraClient instance for API calls
+   * @param jiraClient - JiraClient or DummyJiraClient instance for API calls
    * @param configManager - ConfigManager instance for accessing configuration
    */
   constructor(
     private context: vscode.ExtensionContext,
-    private jiraClient: JiraClient,
+    private jiraClient: JiraClient | DummyJiraClient,
     private configManager: ConfigManager
   ) {}
 

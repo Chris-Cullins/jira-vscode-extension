@@ -6,6 +6,7 @@ import { ConfigValidator } from './config/ConfigValidator';
 import { ConfigChangeHandler } from './config/ConfigChangeHandler';
 import { JiraTreeProvider } from './providers/JiraTreeProvider';
 import { CreateIssueWebviewProvider } from './providers/CreateIssueWebviewProvider';
+import { IssueDetailsWebviewProvider } from './providers/IssueDetailsWebviewProvider';
 import { registerAuthenticateCommand, registerClearCredentialsCommand } from './commands/authenticate';
 import { registerCacheClearCommand, registerCacheStatsCommand } from './commands/cache';
 import { registerConfigureCommand } from './commands/configure';
@@ -13,6 +14,7 @@ import { registerValidateCommand } from './commands/validate';
 import { registerRefreshCommand, registerOpenIssueCommand, registerCopyIssueKeyCommand, registerFilterByIssueTypeCommand, registerFilterByPriorityCommand, registerFilterBySprintCommand, registerClearFiltersCommand, registerSearchIssuesCommand, registerClearSearchCommand, registerChangeStatusCommand, registerAddCommentCommand, registerShowCreateMenuCommand } from './commands/treeView';
 import { registerInvestigateWithCopilotCommand } from './commands/copilot';
 import { JiraClient } from './api/JiraClient';
+import { DummyJiraClient } from './api/DummyJiraClient';
 
 /**
  * Global extension context - accessible to all modules
@@ -38,12 +40,12 @@ export function activate(context: vscode.ExtensionContext) {
 	extensionContext = context;
 
 	// Create output channel for logging
-	const outputChannel = vscode.window.createOutputChannel('Jira Extension');
-	outputChannel.appendLine('Jira Extension is now active');
+	const outputChannel = vscode.window.createOutputChannel('42-Jira-Buddy');
+	outputChannel.appendLine('42-Jira-Buddy is now active');
 	outputChannel.appendLine(`Extension ID: ${context.extension.id}`);
 	outputChannel.appendLine(`Extension Path: ${context.extensionPath}`);
 
-	console.log('Jira Extension is now active');
+	console.log('42-Jira-Buddy is now active');
 
 	// Initialize managers
 	const authManager = new AuthManager(context);
@@ -101,29 +103,91 @@ export function activate(context: vscode.ExtensionContext) {
 	// Register Copilot integration commands
 	context.subscriptions.push(registerInvestigateWithCopilotCommand(context));
 
+	// Register toggle dummy data command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jira.toggleDummyData', async () => {
+			const currentValue = configManager.useDummyData;
+			const newValue = !currentValue;
+
+			await configManager.setUseDummyData(newValue, false);
+
+			const status = newValue ? 'enabled' : 'disabled';
+			const message = `Dummy data mode ${status}. Please reload the extension for changes to take effect.`;
+
+			const selection = await vscode.window.showInformationMessage(
+				message,
+				'Reload Extension',
+				'Dismiss'
+			);
+
+			if (selection === 'Reload Extension') {
+				vscode.commands.executeCommand('workbench.action.reloadWindow');
+			}
+		})
+	);
+
+	// Register show issue details command (for dummy data mode)
+	let issueDetailsProvider: IssueDetailsWebviewProvider | null = null;
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jira.showIssueDetails', async (issueKey: string) => {
+			try {
+				// Create client based on dummy data mode
+				let client;
+				if (configManager.useDummyData) {
+					client = new DummyJiraClient(undefined, undefined, undefined, cacheManager);
+				} else {
+					const credentials = await authManager.getCredentials();
+					if (!credentials) {
+						vscode.window.showErrorMessage('Please configure Jira credentials first.');
+						return;
+					}
+					client = new JiraClient(credentials.url, credentials.email, credentials.token, cacheManager);
+				}
+
+				// Create or reuse provider
+				if (!issueDetailsProvider) {
+					issueDetailsProvider = new IssueDetailsWebviewProvider(context, client);
+				}
+
+				await issueDetailsProvider.show(issueKey);
+			} catch (error) {
+				vscode.window.showErrorMessage(
+					`Failed to show issue details: ${error instanceof Error ? error.message : String(error)}`
+				);
+			}
+		})
+	);
+
 	// Register ticket creation commands
 	// Create webview provider (will be initialized on demand with JiraClient)
 	let webviewProvider: CreateIssueWebviewProvider | null = null;
 
 	const getOrCreateWebviewProvider = async (): Promise<CreateIssueWebviewProvider | null> => {
-		// Get credentials to create JiraClient
-		const credentials = await authManager.getCredentials();
-		if (!credentials) {
-			vscode.window.showErrorMessage(
-				'Please configure Jira credentials first using "Jira: Configure" command.'
-			);
-			return null;
-		}
-
 		// Create or reuse webview provider
 		if (!webviewProvider) {
-			const jiraClient = new JiraClient(
-				credentials.url,
-				credentials.email,
-				credentials.token,
-				cacheManager
-			);
-			webviewProvider = new CreateIssueWebviewProvider(context, jiraClient, configManager);
+			// Check if dummy data mode is enabled
+			if (configManager.useDummyData) {
+				// Use dummy client for testing without credentials
+				const dummyClient = new DummyJiraClient(undefined, undefined, undefined, cacheManager);
+				webviewProvider = new CreateIssueWebviewProvider(context, dummyClient, configManager);
+			} else {
+				// Get credentials to create real JiraClient
+				const credentials = await authManager.getCredentials();
+				if (!credentials) {
+					vscode.window.showErrorMessage(
+						'Please configure Jira credentials first using "Jira: Configure" command.'
+					);
+					return null;
+				}
+
+				const jiraClient = new JiraClient(
+					credentials.url,
+					credentials.email,
+					credentials.token,
+					cacheManager
+				);
+				webviewProvider = new CreateIssueWebviewProvider(context, jiraClient, configManager);
+			}
 		}
 
 		return webviewProvider;
@@ -214,7 +278,7 @@ async function validateOnActivation(
 
 		if (hasCriticalError) {
 			vscode.window.showWarningMessage(
-				'Jira Extension configuration has issues. Check the output channel for details.',
+				'42-Jira-Buddy configuration has issues. Check the output channel for details.',
 				'View Output',
 				'Run Setup'
 			).then(selection => {
@@ -244,7 +308,7 @@ async function validateOnActivation(
  * Cleanup resources and clear global state
  */
 export function deactivate() {
-	console.log('Jira Extension has been deactivated');
+	console.log('42-Jira-Buddy has been deactivated');
 
 	// Clear global context
 	extensionContext = undefined;

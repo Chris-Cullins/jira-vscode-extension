@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { JiraClient } from '../api/JiraClient';
+import { DummyJiraClient } from '../api/DummyJiraClient';
 import { AuthManager } from '../api/AuthManager';
 import { ConfigManager } from '../config/ConfigManager';
 import { CacheManager } from '../api/CacheManager';
@@ -182,11 +183,20 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	/**
 	 * Create a JiraClient instance with current credentials
 	 *
-	 * @returns JiraClient instance or null if credentials are not available
+	 * If dummy data mode is enabled, returns a DummyJiraClient.
+	 * Otherwise, returns a real JiraClient with actual credentials.
+	 *
+	 * @returns JiraClient or DummyJiraClient instance, or null if credentials are not available
 	 * @throws Error if credentials are invalid or not configured
 	 */
-	private async getJiraClient(): Promise<JiraClient | null> {
+	private async getJiraClient(): Promise<JiraClient | DummyJiraClient | null> {
 		try {
+			// Check if dummy data mode is enabled
+			if (this.configManager.useDummyData) {
+				return new DummyJiraClient(undefined, undefined, undefined, this.cacheManager);
+			}
+
+			// Use real credentials for live API
 			const credentials = await this.authManager.getCredentials();
 			if (!credentials) {
 				return null;
@@ -298,7 +308,7 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	 * @param client - The JiraClient instance to use
 	 * @returns Array of status group items
 	 */
-	private async getStatusGroups(client: JiraClient): Promise<StatusGroupItem[]> {
+	private async getStatusGroups(client: JiraClient | DummyJiraClient): Promise<StatusGroupItem[]> {
 		const issues = await client.getAssignedIssues();
 
 		// Handle empty state
@@ -331,7 +341,7 @@ export class JiraTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 	 * @param status - The status to filter by
 	 * @returns Array of issue items
 	 */
-	private async getIssuesForStatus(client: JiraClient, status: string): Promise<IssueItem[]> {
+	private async getIssuesForStatus(client: JiraClient | DummyJiraClient, status: string): Promise<IssueItem[]> {
 		const issues = await client.getAssignedIssues();
 		const filteredIssues = this.applyFilters(issues);
 		return filteredIssues

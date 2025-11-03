@@ -1,4 +1,4 @@
-# Jira VS Code Extension - Feature Breakdown
+# 42-Jira-Buddy - Feature Breakdown
 
 This document provides detailed feature specifications for each epic, breaking them into individual, implementable features.
 

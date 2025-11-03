@@ -64,6 +64,12 @@ export function registerOpenIssueCommand(
 ): vscode.Disposable {
 	return vscode.commands.registerCommand('jira.openIssue', async (issueKey: string) => {
 		try {
+			// In dummy data mode, show issue details in a webview
+			if (configManager.useDummyData) {
+				vscode.commands.executeCommand('jira.showIssueDetails', issueKey);
+				return;
+			}
+
 			const instanceUrl = configManager.instanceUrl;
 
 			if (!instanceUrl) {
