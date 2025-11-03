@@ -49,7 +49,7 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "jira.openInBrowser",
+        "command": "jira.openIssue",
         "title": "Open in Jira"
       }
     ],
@@ -129,8 +129,9 @@
       ],
       "view/item/context": [
         {
-          "command": "jira.openInBrowser",
-          "when": "view == jiraMyWork && viewItem == issue"
+          "command": "jira.openIssue",
+          "when": "view == jiraMyWork && viewItem == issue",
+          "group": "navigation@1"
         }
       ]
     }

@@ -46,17 +46,21 @@ export function registerRefreshCommand(
 }
 
 /**
- * Register the open in browser command
+ * Register the open issue command
+ *
+ * Opens a Jira issue in the default browser.
+ * This command can be triggered from the tree view context menu or
+ * by clicking on an issue in the tree.
  *
  * @param context - VS Code extension context
  * @param configManager - Configuration manager instance
  * @returns Disposable for the command
  */
-export function registerOpenInBrowserCommand(
+export function registerOpenIssueCommand(
 	context: vscode.ExtensionContext,
 	configManager: ConfigManager
 ): vscode.Disposable {
-	return vscode.commands.registerCommand('jira.openInBrowser', async (issue: JiraIssue) => {
+	return vscode.commands.registerCommand('jira.openIssue', async (issueKey: string) => {
 		try {
 			const instanceUrl = configManager.instanceUrl;
 
@@ -66,7 +70,7 @@ export function registerOpenInBrowserCommand(
 			}
 
 			// Construct the issue URL
-			const issueUrl = `${instanceUrl}/browse/${issue.key}`;
+			const issueUrl = `${instanceUrl}/browse/${issueKey}`;
 
 			// Open in external browser
 			const uri = vscode.Uri.parse(issueUrl);
